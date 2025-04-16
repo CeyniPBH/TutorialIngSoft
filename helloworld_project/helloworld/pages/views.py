@@ -108,3 +108,44 @@ class ProductListView(ListView):
         context['title'] = 'Productos - Tienda Online'
         context['subtitle'] = 'Lista de productos'
         return context
+    
+class CartView(View):
+    template_name = 'cart/index.html'
+
+    def get(self, request):
+        products = {}
+        products[121] = {'name': 'Tv samgsung', 'price': '1000'}
+        products[11] = {'name': 'Iphone', 'price': '2000'}
+        
+        cart_products = {}
+        cart_product_data = request.session.get('cart_product_data', {})
+
+        for key, product in products.items():
+            if str(key) in cart_product_data.keys():
+                cart_products[key] = product
+        
+        viewData = {
+            'title': 'Carrito de Compras - Tienda Online',
+            'subtitle': 'Carrito de compras',
+            'products': products,
+            'cart_products': cart_products
+        }
+
+        return render(request, self.template_name, viewData)
+
+    def post(self, request, product_id):
+        # Obtener los productos del carrito desde la sesión y agregar el nuevo producto
+        cart_product_data = request.session.get('cart_product_data', {})
+        cart_product_data[product_id] = product_id
+
+        request.session['cart_product_data'] = cart_product_data
+
+        return redirect('cart_index')
+
+class CartRemoveAllView(View):
+    def post(self, request):
+        # Eliminar todos los productos del carrito en la sesión
+        if 'cart_product_data' in request.session:
+            del request.session['cart_product_data']
+
+        return redirect('cart_index')
